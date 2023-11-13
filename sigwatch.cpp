@@ -44,7 +44,7 @@ class UnixSignalWatcherPrivate : public QObject
 
 public:
     UnixSignalWatcherPrivate(UnixSignalWatcher *q);
-    ~UnixSignalWatcherPrivate();
+    ~UnixSignalWatcherPrivate() override;
 
     void watchForSignal(int signal);
     static void signalHandler(int signal);
@@ -89,7 +89,7 @@ UnixSignalWatcherPrivate::~UnixSignalWatcherPrivate()
 void UnixSignalWatcherPrivate::watchForSignal(int signal)
 {
     if (watchedSignals.contains(signal)) {
-        qDebug() << "Already watching for signal" << signal;
+        qInfo() << "Already watching for signal" << signal;
         return;
     }
 
@@ -99,8 +99,8 @@ void UnixSignalWatcherPrivate::watchForSignal(int signal)
     sigact.sa_flags = 0;
     ::sigemptyset(&sigact.sa_mask);
     sigact.sa_flags |= SA_RESTART;
-    if (::sigaction(signal, &sigact, NULL)) {
-        qDebug() << "UnixSignalWatcher: sigaction: " << ::strerror(errno);
+    if (::sigaction(signal, &sigact, nullptr)) {
+        qInfo() << "UnixSignalWatcher: sigaction: " << ::strerror(errno);
         return;
     }
 
@@ -114,7 +114,7 @@ void UnixSignalWatcherPrivate::watchForSignal(int signal)
 void UnixSignalWatcherPrivate::signalHandler(int signal)
 {
     ssize_t nBytes = ::write(sockpair[0], &signal, sizeof(signal));
-    Q_UNUSED(nBytes);
+    Q_UNUSED(nBytes)
 }
 
 /*!
@@ -127,8 +127,8 @@ void UnixSignalWatcherPrivate::_q_onNotify(int sockfd)
 
     int signal;
     ssize_t nBytes = ::read(sockfd, &signal, sizeof(signal));
-    Q_UNUSED(nBytes);
-    qDebug() << "Caught signal:" << ::strsignal(signal);
+    Q_UNUSED(nBytes)
+    qInfo() << "Caught signal:" << ::strsignal(signal);
     emit q->unixSignal(signal);
 }
 
